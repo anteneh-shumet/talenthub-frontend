@@ -7,12 +7,13 @@
     "node": "22.x",
     "npm": "9.x"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+"scripts": {
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "heroku-postbuild": "npm run build", 
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+},
   "dependencies": {
     "axios": "^1.4.0",
     "framer-motion": "^12.23.12",
