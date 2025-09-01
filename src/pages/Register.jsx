@@ -1,92 +1,66 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 
-const Register = ({ setUser }) => {
+const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('applicant');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
-    try {
-      const res = await axios.post('https://talenthub-backend-bhrj.onrender.com/auth/register', { name, email, password, role });
-      console.log('API Response:', res); // Log response for debugging
+    setError('');
+    setLoading(true);
 
-      // Check if response contains userId
+    try {
+      const res = await axios.post(
+        'https://talenthub-backend-bhrj.onrender.com/auth/register',
+        { name, email, password, role }
+      );
+
       if (!res.data || !res.data.userId) {
-        throw new Error('No userId received from server. Response: ' + JSON.stringify(res.data));
+        throw new Error(
+          'No userId received from server. Response: ' +
+            JSON.stringify(res.data)
+        );
       }
 
-      // Build user object without token
-      const userData = {
-        id: res.data.userId,
-        email,
-        username: name,
-        role,
-      };
-
-      // Save to state and localStorage
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-
-      // Show success toast
-      toast.success('Registration successful! Welcome to TalentHub!', {
+      // Show success toast only
+      toast.success('Registration successful! You can now log in.', {
         icon: '🎉',
+        duration: 4000,
       });
-      navigate('/');
+
+      // Clear form fields
+      setName('');
+      setEmail('');
+      setPassword('');
+      setRole('applicant');
+
     } catch (err) {
       console.error('Registration error:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Registration failed. Please try again.';
       setError(errorMessage);
-      toast.error(errorMessage, {
-        icon: '❌',
-      });
+      toast.error(errorMessage, { icon: '❌' });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Toaster component with custom styling */}
+      {/* Toaster */}
       <Toaster
         position="top-right"
         reverseOrder={false}
         toastOptions={{
-          style: {
-            maxWidth: '400px',
-            padding: '16px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            fontSize: '16px',
-            fontWeight: '500',
-          },
-          success: {
-            style: {
-              background: '#10B981',
-              color: '#ffffff',
-              border: '1px solid #059669',
-            },
-            iconTheme: {
-              primary: '#ffffff',
-              secondary: '#10B981',
-            },
-          },
-          error: {
-            style: {
-              background: '#EF4444',
-              color: '#ffffff',
-              border: '1px solid #B91C1C',
-            },
-            iconTheme: {
-              primary: '#ffffff',
-              secondary: '#EF4444',
-            },
-          },
+          style: { maxWidth: '400px', padding: '16px', borderRadius: '8px', fontSize: '16px', fontWeight: '500' },
+          success: { style: { background: '#10B981', color: '#fff', border: '1px solid #059669' } },
+          error: { style: { background: '#EF4444', color: '#fff', border: '1px solid #B91C1C' } },
         }}
       />
 
@@ -120,6 +94,7 @@ const Register = ({ setUser }) => {
               onChange={(e) => setName(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none transition"
               required
+              disabled={loading}
             />
             <input
               type="email"
@@ -128,6 +103,7 @@ const Register = ({ setUser }) => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none transition"
               required
+              disabled={loading}
             />
             <input
               type="password"
@@ -136,14 +112,16 @@ const Register = ({ setUser }) => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none transition"
               required
+              disabled={loading}
             />
 
-            {/* Modern Dropdown */}
+            {/* Role Dropdown */}
             <div className="relative">
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none transition bg-white text-gray-700 appearance-none pr-10"
+                disabled={loading}
               >
                 <option value="applicant">Applicant</option>
                 <option value="employer">Employer</option>
@@ -162,9 +140,10 @@ const Register = ({ setUser }) => {
 
             <button
               type="submit"
-              className="w-full py-3 bg-secondary text-white font-semibold rounded-lg shadow-lg hover:bg-green-700 transition"
+              className={`w-full py-3 bg-secondary text-white font-semibold rounded-lg shadow-lg hover:bg-green-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={loading}
             >
-              Register
+              {loading ? 'Registering...' : 'Register'}
             </button>
           </form>
 
